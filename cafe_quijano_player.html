@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Café Quijano — Sabes qué te digo</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #08121a;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.player-card {
+  width: 300px;
+  background: linear-gradient(160deg, #1a2638 0%, #0e1c2a 40%, #0b1e18 100%);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(120,180,140,0.15);
+  position: relative;
+}
+
+/* Cover */
+.cover-section {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+}
+
+.cover-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.72) saturate(0.85);
+}
+
+.cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(10,24,18,0.05) 0%,
+    rgba(10,24,18,0.6) 75%,
+    rgba(10,24,18,1) 100%);
+}
+
+.playing-badge {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.07);
+  border: 0.5px solid rgba(255,255,255,0.16);
+  padding: 5px 14px;
+  border-radius: 20px;
+  color: rgba(255,255,255,0.65);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.playing-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #7fcba8;
+  flex-shrink: 0;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.25; transform: scale(0.55); }
+}
+
+.luna {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  opacity: 0.45;
+}
+
+/* Song info */
+.song-info {
+  padding: 0 24px 18px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  margin-top: -6px;
+}
+
+.song-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 20px;
+  font-weight: normal;
+  font-style: italic;
+  color: #e8f0ec;
+  margin-bottom: 5px;
+  letter-spacing: 0.02em;
+}
+
+.song-artist {
+  font-size: 10px;
+  color: #7fcba8;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Progress */
+.controls-section { padding: 0 24px 22px; }
+
+.progress-track {
+  width: 100%;
+  height: 2px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 34%;
+  background: #7fcba8;
+  border-radius: 2px;
+  transition: width 0.3s linear;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #a8dfbf;
+}
+
+.time-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.04em;
+  margin-bottom: 22px;
+}
+
+/* Controls */
+.main-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.ctrl-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.32);
+  transition: color 0.2s;
+  border-radius: 4px;
+}
+
+.ctrl-btn:hover  { color: rgba(255,255,255,0.72); }
+.ctrl-btn:active { color: rgba(255,255,255,0.9); }
+
+.play-btn {
+  background: none;
+  border: 0.5px solid rgba(127,203,168,0.4);
+  cursor: pointer;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a8dfbf;
+  transition: border-color 0.2s, color 0.2s, transform 0.15s;
+}
+
+.play-btn:hover {
+  border-color: rgba(127,203,168,0.8);
+  color: #c8edd8;
+  transform: scale(1.06);
+}
+
+.play-btn:active { transform: scale(0.96); }
+
+/* Bottom row */
+.bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px 22px;
+}
+
+.heart-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255,255,255,0.22);
+  padding: 4px;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.heart-btn.liked { color: #e8758a; }
+.heart-btn:hover:not(.liked) { color: rgba(255,255,255,0.5); }
+
+.vol-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.2);
+}
+
+.vol-track {
+  width: 64px;
+  height: 2px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+}
+
+.vol-fill {
+  height: 100%;
+  width: 65%;
+  background: rgba(255,255,255,0.26);
+  border-radius: 2px;
+}
+
+/* Waves */
+.waves {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 16px;
+}
+
+.wave-bar {
+  width: 2px;
+  background: #7fcba8;
+  border-radius: 1px;
+  opacity: 0.6;
+  animation: wave 0.9s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(1) { animation-delay: 0s;     height: 6px; }
+.wave-bar:nth-child(2) { animation-delay: 0.15s;  height: 12px; }
+.wave-bar:nth-child(3) { animation-delay: 0.3s;   height: 8px; }
+.wave-bar:nth-child(4) { animation-delay: 0.1s;   height: 14px; }
+.wave-bar:nth-child(5) { animation-delay: 0.25s;  height: 5px; }
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.35); }
+  50%       { transform: scaleY(1); }
+}
+</style>
+</head>
+<body>
+
+<div class="player-card">
+
+  <div class="cover-section">
+    <img src="paisaje.jpg" alt="Paisaje nocturno">
+    <div class="cover-overlay"></div>
+
+    <div class="playing-badge">
+      <div class="playing-dot"></div>
+      <span>Reproduciendo</span>
+    </div>
+
+    <svg class="luna" width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="rgba(210,235,220,0.85)"/>
+    </svg>
+  </div>
+
+  <div class="song-info">
+    <p class="song-title">Sabes qué te digo</p>
+    <p class="song-artist">Café Quijano</p>
+  </div>
+
+  <div class="controls-section">
+    <div class="progress-track" id="track">
+      <div class="progress-fill" id="fill"></div>
+    </div>
+    <div class="time-labels">
+      <span id="cur">1:26</span>
+      <span>4:10</span>
+    </div>
+
+    <div class="main-controls">
+
+      <!-- Shuffle -->
+      <button class="ctrl-btn" title="Aleatorio">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 3 21 3 21 8"/>
+          <line x1="4" y1="20" x2="21" y2="3"/>
+          <polyline points="21 16 21 21 16 21"/>
+          <line x1="15" y1="15" x2="21" y2="21"/>
+        </svg>
+      </button>
+
+      <!-- Prev -->
+      <button class="ctrl-btn" title="Anterior" onclick="prev()">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="19 20 9 12 19 4 19 20"/>
+          <line x1="5" y1="19" x2="5" y2="5"/>
+        </svg>
+      </button>
+
+      <!-- Play/Pause -->
+      <button class="play-btn" id="playBtn" title="Pausar" onclick="togglePlay()">
+        <svg id="playIcon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="10" y1="15" x2="10" y2="9"/>
+          <line x1="14" y1="15" x2="14" y2="9"/>
+        </svg>
+      </button>
+
+      <!-- Next -->
+      <button class="ctrl-btn" title="Siguiente" onclick="next()">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 4 15 12 5 20 5 4"/>
+          <line x1="19" y1="5" x2="19" y2="19"/>
+        </svg>
+      </button>
+
+      <!-- Waves -->
+      <div class="waves" id="waves">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="bottom-row">
+
+    <!-- Heart -->
+    <button class="heart-btn" id="heartBtn" title="Me gusta" onclick="toggleLike()">
+      <svg id="heartSvg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+    </button>
+
+    <!-- Volume -->
+    <div class="vol-row">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      </svg>
+      <div class="vol-track"><div class="vol-fill"></div></div>
+    </div>
+
+  </div>
+</div>
+
+<audio id='audio' preload='metadata'>
+  <source src='audio/sabes_que_te_digo.mp3' type='audio/mpeg'>
+  Tu navegador no admite audio HTML5.
+</audio>
+
+<script>
+  const audio = document.getElementById('audio');
+  const fill = document.getElementById('fill');
+  const curLabel = document.getElementById('cur');
+  const track = document.getElementById('track');
+  const playBtn = document.getElementById('playBtn');
+  const icon = document.getElementById('playIcon');
+  const waveBars = document.querySelectorAll('.wave-bar');
+  let liked = false;
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return m + ':' + String(s).padStart(2, '0');
+  }
+
+  function updateTime() {
+    const current = audio.currentTime || 0;
+    const duration = audio.duration || 250;
+    const pct = duration ? (current / duration) * 100 : 0;
+    fill.style.width = pct + '%';
+    curLabel.textContent = formatTime(current);
+  }
+
+  function updatePlayState() {
+    const playing = !audio.paused && !audio.ended;
+    if (playing) {
+      icon.innerHTML = '<line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/>';
+      playBtn.title = 'Pausar';
+    } else {
+      icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+      playBtn.title = 'Reproducir';
+    }
+    waveBars.forEach(b => {
+      b.style.animationPlayState = playing ? 'running' : 'paused';
+    });
+  }
+
+  function togglePlay() {
+    if (audio.paused) {
+      audio.play().catch(() => {
+        // El navegador puede bloquear autoplay; el usuario debe hacer clic.
+      });
+    } else {
+      audio.pause();
+    }
+    updatePlayState();
+  }
+
+  function toggleLike() {
+    liked = !liked;
+    const btn = document.getElementById('heartBtn');
+    const svg = document.getElementById('heartSvg');
+    btn.classList.toggle('liked', liked);
+    svg.setAttribute('fill', liked ? '#e8758a' : 'none');
+    svg.setAttribute('stroke', liked ? '#e8758a' : 'currentColor');
+  }
+
+  function prev() {
+    audio.currentTime = Math.max(0, audio.currentTime - 15);
+    updateTime();
+  }
+
+  function next() {
+    audio.currentTime = Math.min(audio.duration || audio.currentTime + 15, audio.currentTime + 15);
+    updateTime();
+  }
+
+  track.addEventListener('click', function(e) {
+    const rect = this.getBoundingClientRect();
+    const targetTime = ((e.clientX - rect.left) / rect.width) * (audio.duration || 250);
+    audio.currentTime = Math.max(0, Math.min(audio.duration || 250, targetTime));
+    updateTime();
+  });
+
+  audio.addEventListener('timeupdate', updateTime);
+  audio.addEventListener('loadedmetadata', updateTime);
+  audio.addEventListener('play', updatePlayState);
+  audio.addEventListener('pause', updatePlayState);
+  audio.addEventListener('ended', updatePlayState);
+
+  updatePlayState();
+</script>
+</body>
+</html>
